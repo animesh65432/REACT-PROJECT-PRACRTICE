@@ -1,10 +1,36 @@
-import { useState } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 
 function App() {
-  const [length, setlength] = useState(8);
-  const [number, numberallowed] = useState(false);
-  const [char, charallowes] = useState(false);
-  const [pass, setpassword] = useState("");
+  const [length, setLength] = useState(8);
+  const [numberAllowed, setNumberAllowed] = useState(false);
+  const [charAllowed, setCharAllowed] = useState(false);
+  const [password, setPassword] = useState("");
+  const passwordref = useRef(null);
+
+  const generatePassword = useCallback(() => {
+    let generatedPassword = "";
+    let str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    if (numberAllowed) str += "0123456789";
+    if (charAllowed) str += "!\"#$%&'()*+,-./";
+
+    for (let i = 0; i < length; i++) {
+      let chr = Math.floor(Math.random() * str.length);
+      generatedPassword += str.charAt(chr);
+    }
+
+    setPassword(generatedPassword);
+  }, [length, numberAllowed, charAllowed]);
+
+  useEffect(() => {
+    generatePassword();
+  }, [length, numberAllowed, charAllowed]);
+
+  const copy_the_text = () => {
+    window.navigator.clipboard.writeText(password);
+    passwordref.current?.select();
+  };
+
   return (
     <>
       <div className="w-full max-w-md mx-auto  shadow-md rounded-lg px-4 py-3 my-8 bg-gray-800 text-orange-500">
@@ -12,12 +38,16 @@ function App() {
         <div className="flex shadow rounded-lg overflow-hidden mb-4">
           <input
             type="text"
-            value={pass}
+            value={password}
             className="outline-none w-full py-1 px-3"
             placeholder="password"
             readOnly
+            ref={passwordref}
           ></input>
-          <button className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0">
+          <button
+            className="outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0"
+            onClick={copy_the_text}
+          >
             COPY
           </button>
         </div>
@@ -28,16 +58,16 @@ function App() {
             max={100}
             value={length}
             className="cursor-pointer"
-            onChange={(e) => setlength(e.target.value)}
+            onChange={(e) => setLength(e.target.value)}
           />
           <label htmlFor="length">length : {length}</label>
         </div>
         <div className="flex items-center gap-x-1">
           <input
             type="checkbox"
-            defaultChecked={number}
+            defaultChecked={numberAllowed}
             onChange={() => {
-              numberallowed((prev) => !prev);
+              setNumberAllowed((prev) => !prev);
             }}
             name=""
             id=""
@@ -47,9 +77,9 @@ function App() {
         <div className="flex items-center gap-x-1">
           <input
             type="checkbox"
-            defaultChecked={char}
+            defaultChecked={charAllowed}
             onChange={() => {
-              numberallowed((char) => !char);
+              setCharAllowed((char) => !char);
             }}
             name=""
             id=""
